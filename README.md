@@ -27,8 +27,8 @@ Both virtual machines were created using UTM with nearly identical hardware spec
 ![Method of virtualization](/images/vm-creation/02-virtualization-method.png)
 
 3. Select **Windows**, followed by the following hardware configuration:
-- **Memory:** 4096 MB (4 GB)
-- **Processors:** 2
+- **Memory:** `4096 MB (4 GB)`
+- **Processors:** `2`
 
 ![Choose OS](/images/vm-creation/03-choose-os.png)
 ![Memory selection page](/images/vm-creation/04-set-ram.png)
@@ -38,11 +38,11 @@ Both virtual machines were created using UTM with nearly identical hardware spec
 ![ISO selection page](/images/vm-creation/05-choose-iso.png)
 ![ISO file](/images/vm-creation/06-choose-iso2.png)
 
-5. Set the storage size to **60 GiB**.
+5. Set the storage size to `60 GiB`.
 
 ![Server storage size selection](/images/vm-creation/07-storage-size.png)
 
-6. Rename the machine to **DC01** and click `Save`.
+6. Rename the machine to `DC01` and click `Save`.
 
 ![Rename server VM](/images/vm-creation/08-rename-servervm.png)
 
@@ -62,8 +62,8 @@ Both virtual machines were created using UTM with nearly identical hardware spec
 
 ### Client
 The same VM creation process was used for the Windows client, with differences in the Windows installation ISO, storage capacity, and virtual machine name.
-- **Storage:** 40 GiB
-- **Virtual Machine Name:** Client01
+- **Storage:** `40 GiB`
+- **Virtual Machine Name:** `Client01`
 
 ![Client ISO selection](/images/vm-creation/12-client-iso.png)
 ![Client storage size selection](/images/vm-creation/13-client-storage.png)
@@ -76,7 +76,7 @@ The same VM creation process was used for the Windows client, with differences i
 Once the virtual machine was configured, Windows Server 2025 was installed using the default installation settings. Additionally, the UTM Windows Guest Tools were installed to improve performance and display resolution, although their installation is not required.
 
 ### Rename Server
-After installing Windows Server 2025, the server was assigned a hostname that identifies its role as the Domain Controller. To avoid confusion, the server was given the same name as the virtual machine it is operating in, **DC01**.
+After installing Windows Server 2025, the server was assigned a hostname that identifies its role as the Domain Controller. To avoid confusion, the server was given the same name as the virtual machine it is operating in, `DC01`.
 
 The hostname was configured through **Server Manager → Local Server → Computer name → Change**. After renaming the server, the computer was restarted to apply the changes made. 
 
@@ -87,7 +87,7 @@ The hostname was configured through **Server Manager → Local Server → Comput
 Following the assignment of a new hostname, the server was configured with a static IP address. The network configuration was accessed through **Server Manager → Local Server** by selecting **IPv4 address assigned by DHCP, IPv6 enabled** next to **Ethernet**.
 
 ![Network connections window](/images/server-configuration/network-config/01-network-connections.png)
-*As mentioned earlier, the virtual machine was configured with two network adapters: one for communication between the devices and another for internet access. Ethernet 2 was configured with the Host Only network mode and was therefore selected for the static IP configuration.*
+*As mentioned earlier, the virtual machine was configured with two network adapters: one for communication between the devices and another for internet access. Ethernet 2 was configured with the **Host Only** network mode and was therefore selected for the static IP configuration.*
 
 By right-clicking **Ethernet 2** and navigating to **Properties → Internet Protocol Version 4 (TCP/IPv4)→ Properties**, the server was configured with the following network settings:
 - **IP address:** `192.168.64.10`
@@ -112,7 +112,7 @@ The next step after role installation was to promote the server to a domain cont
 
 ![Installation complete / promote AD server](/images/server-configuration/ad-config/04-promote-server.png)
 
-For the deployment operation, **Add a new forest** was chosen along with the domain name "**adlab.test**" before clicking `Next`.
+For the deployment operation, **Add a new forest** was chosen along with the domain name `adlab.test` before clicking `Next`.
 
 ![Add domain forest](/images/server-configuration/ad-config/05-add-forest.png)
 
@@ -120,5 +120,55 @@ A password was set for Directory Services Restore Mode (DSRM) before continuing 
 
 ![Set DSRM password](/images/server-configuration/ad-config/06-dsrm-password.png)
 
-### Organizational Unit Creation
+### Active Directory Deployment
 
+#### Organizational Unit Creation
+
+With Active Directory installed, the focus shifted to its management through the creation of users, groups, and organizational units. **Active Directory Users and Computers** was accessed through **Server Manager → Tools → Active Directory Users and Computers**, where the newly created domain and its existing organizational units were displayed.
+
+![Domain OU window](/images/server-configuration/ad-deployment/01-domain-ou-window.png)
+
+By right-clicking `adlab.test` and selecting **New → Organizational Unit**, an OU named **IT** was created.
+
+![IT OU creation](/images/server-configuration/ad-deployment/02-ou-name.png)
+
+Following this, the same process was performed on the `IT` organizational unit,  creating two sub-OUs: `Computers` and `Users`.
+
+![Sub-OU creation](/images/server-configuration/ad-deployment/03-sub-ous.png)
+
+Two additional OUs, `Finance` and `HR`, were created under the `adlab.test` domain using the same sub-OU structure.
+
+![Domain AD Structure](/images/server-configuration/ad-deployment/04-ad-structure.png)
+
+#### User Account Creation
+
+After setting up the Active Directory structure of `adlab.test`, users were created in their respective OUs. The **Users** OUs were selected, and **New → User** was chosen to create each account. The table below displays all accounts created.
+
+| User | OU      | User logon name |
+|------|---------|-----------------|
+| Adam | IT      | asmith          |
+| John | IT      | jwilliams       |
+| Mary | Finance | mwilson         |
+| Ryan | HR      | rjohnson        |
+
+![Create user wizard](/images/server-configuration/ad-deployment/05-create-user.png)
+![User password creation](/images/server-configuration/ad-deployment/06-user-password.png)
+*Since this is a lab environment, **User must change password at next logon** was left unchecked. In a real-world environment, it is generally recommended that users change the password assigned by the administrator at their first logon.*
+
+#### Group Creation and User Assignment
+
+To simplify permission management, security groups were created and users were assigned to the appropriate groups. By right-clicking `IT` and selecting **New → Group**, a group was created with the following configurations:
+- **Group name:** `IT Support`
+- **Group scope:** `Global`
+- **Group Type:** `Security`
+
+![IT Support group creation](/images/server-configuration/ad-deployment/07-ITSupport-group.png)
+
+After creating the `IT Support` group, one of the recently created users was added. By double-clicking the user, navigating to **Member Of → Add...**, entering `IT Support`, and selecting **Check Names**, the user `Adam` was successfully added to the group.
+
+![Add user to IT Support group](/images/server-configuration/ad-deployment/08-IT-add-to-group.png)
+
+The same process was repeated with the `HR` OU, creating the `HR Staff` group and assigning `Ryan` as a member.
+
+![HR Staff group creation](/images/server-configuration/ad-deployment/09-HRStaff-group.png)
+![Add user to HR Staff group](/images/server-configuration/ad-deployment/10-HR-add-to-group.png)
