@@ -16,6 +16,7 @@ This project demonstrates the process of creating and setting up an Active Direc
 ## VM Creation
 Both virtual machines were created using UTM with nearly identical hardware specifications, with the exception of storage capacity. The virtual machines also differ in the operating system ISO used for installation and their respective machine names, with one configured as the Domain Controller and the other as the Windows client. The following steps were performed to create each machine:
 
+
 ### Domain Controller
 
 1. Select **Create a New Virtual Machine**.
@@ -73,29 +74,32 @@ The same VM creation process was used for the Windows client, with differences i
 ## Server Configuration
 
 ### Windows Installation
-Once the virtual machine was configured, Windows Server 2025 was installed using the default installation settings. Additionally, the UTM Windows Guest Tools were installed to improve performance and display resolution, although their installation is not required.
+Once the virtual machine was configured, `Windows Server 2025` was installed using the default installation settings. Additionally, the UTM Windows Guest Tools were installed to improve performance and display resolution, although their installation is not required.
 
-### Rename Server
-After installing Windows Server 2025, the server was assigned a hostname that identifies its role as the Domain Controller. To avoid confusion, the server was given the same name as the virtual machine it is operating in, `DC01`.
+
+### Server Hostname Configuration
+After installing Windows, the server was assigned a hostname that identifies its role as the Domain Controller. To avoid confusion, the server was given the same name as the virtual machine it is operating in, `DC01`.
 
 The hostname was configured through **Server Manager → Local Server → Computer name → Change**. After renaming the server, the computer was restarted to apply the changes made. 
 
-![Server Rename](/images/server-configuration/server-namechange/01-server-rename.png)
+![Server rename](/images/server-configuration/server-namechange/01-server-rename.png)
+
 
 ### Network Configuration 
 
 Following the assignment of a new hostname, the server was configured with a static IP address. The network configuration was accessed through **Server Manager → Local Server** by selecting **IPv4 address assigned by DHCP, IPv6 enabled** next to **Ethernet**.
 
 ![Network connections window](/images/server-configuration/network-config/01-network-connections.png)
-*As mentioned earlier, the virtual machine was configured with two network adapters: one for communication between the devices and another for internet access. Ethernet 2 was configured with the **Host Only** network mode and was therefore selected for the static IP configuration.*
+*As mentioned earlier, the VM was configured with two network adapters: one for communication between the virtual machines and another for internet access. The connection labeled "Unidentified network" corresponds to the **Host Only** network adapter. Therefore, the **Ethernet 2** adapter was selected for static IP configuration.* 
 
-By right-clicking **Ethernet 2** and navigating to **Properties → Internet Protocol Version 4 (TCP/IPv4)→ Properties**, the server was configured with the following network settings:
-- **IP address:** `192.168.64.10`
+By right-clicking **Ethernet 2** and navigating to **Properties → Internet Protocol Version 4 (TCP/IPv4) → Properties**, the server was configured with the following network settings:
+- **IP address:** `192.168.108.10`
 - **Subnet Mask:** `255.255.255.0`
 - **DNS:** `127.0.0.1` 
 
-![Ethernet properties window](/images/server-configuration/network-config/02-static-ip.png)
+![IPv4 properties window](/images/server-configuration/network-config/02-static-ip.png)
 *To ensure the changes were applied, the server was restarted.*
+
 
 ### Active Directory Installation
 
@@ -108,11 +112,14 @@ By selecting **Active Directory Domain Services → Add Features** and proceedin
 ![AD role selection](/images/server-configuration/ad-config/02-role-selection.png)
 ![AD role installation](/images/server-configuration/ad-config/03-role-installation.png)
 
+
+### Domain Controller Deployment
+
 The next step after role installation was to promote the server to a domain controller. Without closing the wizard, **Promote the server to a domain controller** was clicked.
 
 ![Installation complete / promote AD server](/images/server-configuration/ad-config/04-promote-server.png)
 
-For the deployment operation, **Add a new forest** was chosen along with the domain name `adlab.test` before clicking `Next`.
+For the deployment operation, **Add a new forest** was chosen along with the domain name `adlab.local` before clicking `Next`.
 
 ![Add domain forest](/images/server-configuration/ad-config/05-add-forest.png)
 
@@ -120,29 +127,62 @@ A password was set for Directory Services Restore Mode (DSRM) before continuing 
 
 ![Set DSRM password](/images/server-configuration/ad-config/06-dsrm-password.png)
 
-### Active Directory Deployment
 
-#### Organizational Unit Creation
+## Client Configuration
 
-With Active Directory installed, the focus shifted to its management through the creation of users, groups, and organizational units. **Active Directory Users and Computers** was accessed through **Server Manager → Tools → Active Directory Users and Computers**, where the newly created domain and its existing organizational units were displayed.
+### Windows Installation
+Like the Windows Server installation, the default settings were used, with the exception of selecting `Windows 11 Pro` as the installation image. The UTM Windows Guest Tools were also installed on the client, but as mentioned earlier, there installation is not a requirement.
 
-![Domain OU window](/images/server-configuration/ad-deployment/01-domain-ou-window.png)
+![Windows image selection](/images/client-configuration/01-image-selection.png)
 
-By right-clicking `adlab.test` and selecting **New → Organizational Unit**, an OU named **IT** was created.
 
-![IT OU creation](/images/server-configuration/ad-deployment/02-ou-name.png)
+### Network Configuration
+Once the `Windows 11` installation was complete, the client was configured to use the Domain Controller's DNS address. By navigating to **Control Panel → Network and Internet → Network and Sharing Center → Change adapter settings**, the **Network Connections** window was opened.
+
+![Network connections window](/images/client-configuration/02-network-connections-window.png)
+
+By right-clicking **Ethernet 2** and navigating to **Properties → Internet Protocol Version 4 (TCP/IPv4) → Properties**, the client was configured to use the DNS address `192.168.108.10`.
+
+![Client IPv4 properties window](/images/client-configuration/03-dns-config.png)
+
+
+### Client Hostname Configuration
+The hostname `Client01` was configured through **Control Panel → System and Security → System → Rename This PC**. To ensure the changes made were applied, the computer was restarted after renaming the client. 
+
+![Client rename](/images/client-configuration/04-rename-client.png)
+
+
+### Client Domain Join
+After logging back in, `Client01` was added to the domain `adlab.local` by navigating to **Control Panel → System and Security → System → Domain or workgroup → Change...**.
+
+![Add client to domain](/images/client-configuration/05-add-to-domain.png)
+![Domain added verification](/images/client-configuration/06-domain-add-verification.png)
+
+
+## Active Directory Management
+
+### Organizational Unit Creation
+
+With `Client01` configured, the focus shifted towards Active Directory management through the creation of OUs, users, and groups. **Active Directory Users and Computers** was accessed through **Server Manager → Tools → Active Directory Users and Computers**, where the newly created domain and its existing organizational units were displayed.
+
+![Domain OU window](/images/server-configuration/ad-management/01-domain-ou-window.png)
+
+By right-clicking `adlab.local` and selecting **New → Organizational Unit**, an OU named **IT** was created.
+
+![IT OU creation](/images/server-configuration/ad-management/02-ou-name.png)
 
 Following this, the same process was performed on the `IT` organizational unit,  creating two sub-OUs: `Computers` and `Users`.
 
-![Sub-OU creation](/images/server-configuration/ad-deployment/03-sub-ous.png)
+![Sub-OU creation](/images/server-configuration/ad-management/03-sub-ous.png)
 
-Two additional OUs, `Finance` and `HR`, were created under the `adlab.test` domain using the same sub-OU structure.
+Two additional OUs, `Finance` and `HR`, were created under the `adlab.local` domain using the same sub-OU structure.
 
-![Domain AD Structure](/images/server-configuration/ad-deployment/04-ad-structure.png)
+![Domain AD Structure](/images/server-configuration/ad-management/04-ad-structure.png)
 
-#### User Account Creation
 
-After setting up the Active Directory structure of `adlab.test`, users were created in their respective OUs. The **Users** OUs were selected, and **New → User** was chosen to create each account. The table below displays all accounts created.
+### User Account Creation
+
+After setting up the Active Directory structure of `adlab.local`, users were created in their respective OUs. The **Users** OUs were selected, and **New → User** was chosen to create each account. The table below displays all accounts created.
 
 | User | OU      | User logon name |
 |------|---------|-----------------|
@@ -151,24 +191,35 @@ After setting up the Active Directory structure of `adlab.test`, users were crea
 | Mary | Finance | mwilson         |
 | Ryan | HR      | rjohnson        |
 
-![Create user wizard](/images/server-configuration/ad-deployment/05-create-user.png)
-![User password creation](/images/server-configuration/ad-deployment/06-user-password.png)
+![Create user wizard](/images/server-configuration/ad-management/05-create-user.png)
+![User password creation](/images/server-configuration/ad-management/06-user-password.png)
 *Since this is a lab environment, **User must change password at next logon** was left unchecked. In a real-world environment, it is generally recommended that users change the password assigned by the administrator at their first logon.*
 
-#### Group Creation and User Assignment
+
+### Group Creation and User Assignment
 
 To simplify permission management, security groups were created and users were assigned to the appropriate groups. By right-clicking `IT` and selecting **New → Group**, a group was created with the following configurations:
 - **Group name:** `IT Support`
 - **Group scope:** `Global`
 - **Group Type:** `Security`
 
-![IT Support group creation](/images/server-configuration/ad-deployment/07-ITSupport-group.png)
+![IT Support group creation](/images/server-configuration/ad-management/07-ITSupport-group.png)
 
 After creating the `IT Support` group, one of the recently created users was added. By double-clicking the user, navigating to **Member Of → Add...**, entering `IT Support`, and selecting **Check Names**, the user `Adam` was successfully added to the group.
 
-![Add user to IT Support group](/images/server-configuration/ad-deployment/08-IT-add-to-group.png)
+![Add user to IT Support group](/images/server-configuration/ad-management/08-IT-add-to-group.png)
 
 The same process was repeated with the `HR` OU, creating the `HR Staff` group and assigning `Ryan` as a member.
 
-![HR Staff group creation](/images/server-configuration/ad-deployment/09-HRStaff-group.png)
-![Add user to HR Staff group](/images/server-configuration/ad-deployment/10-HR-add-to-group.png)
+![HR Staff group creation](/images/server-configuration/ad-management/09-HRStaff-group.png)
+![Add user to HR Staff group](/images/server-configuration/ad-management/10-HR-add-to-group.png)
+
+
+### Client Computer Addition
+
+In addition to assigning users to security groups, computer accounts were organized into organizational units that reflect their respective departments. Since the lab contains only one client virtual machine, `Client01` was designated as a computer belonging to the `IT` department. By navigating to the default `Computers` OU, right-clicking `Client01`, and selecting **Move**, the computer account was moved to the `Computers` OU under `IT`.
+
+![Default computers OU window](/images/server-configuration/ad-management/11-default-computer-ou.png)
+![Move computer window](/images/server-configuration/ad-management/12-move-computer.png)
+
+## Group Policy
