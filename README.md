@@ -3,6 +3,17 @@
 This project demonstrates the setup and management of an Active Directory environment, including domain controller deployment, user and group management, organizational unit configuration, and integration of a Windows client into the domain.
 
 
+# Table of Contents
+
+- [Lab Environment](#lab-environment)
+- [VM Creation](#vm-creation)
+- [Server Configuration](#server-configuration)
+- [Client Configuration](#client-configuration)
+- [Active Directory Management](#active-directory-management)
+- [Group Policy](#group-policy)
+- [Key Skills Demonstrated](#key-skills-demonstrated)
+
+
 ## Lab Environment
 
 **Note:** The host OS used for this project is a MacBook Pro with an Apple M1 Pro chip and 16GB of memory. As a result, the ISO image used to install the Domain Controller needed to be compatible with the **ARM64** architecture. The other specifications listed reflect personal preferences; alternative configurations can be used to create a similar environment. Links to each resource are provided below.
